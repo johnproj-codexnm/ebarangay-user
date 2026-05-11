@@ -169,6 +169,107 @@
             margin: 0;
         }
 
+        /* Logout Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .logout-modal {
+            background-color: #ffffff;
+            border-radius: 24px;
+            padding: 32px 24px;
+            width: 90%;
+            max-width: 340px;
+            text-align: center;
+            transform: translateY(20px) scale(0.95);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .modal-overlay.active .logout-modal {
+            transform: translateY(0) scale(1);
+        }
+
+        .modal-icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #0f172a;
+        }
+
+        .modal-text {
+            color: #64748b;
+            font-size: 0.95rem;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-cancel {
+            flex: 1;
+            padding: 14px;
+            border-radius: 14px;
+            background-color: #f1f5f9;
+            color: #475569;
+            border: none;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+        }
+
+        .btn-cancel:hover {
+            background-color: #e2e8f0;
+        }
+
+        .btn-confirm-logout {
+            flex: 1;
+            padding: 14px;
+            border-radius: 14px;
+            background-color: #ef4444;
+            color: #ffffff;
+            border: none;
+            font-weight: 600;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-confirm-logout:hover {
+            background-color: #dc2626;
+            color: #ffffff;
+        }
+
     </style>
 </head>
 
@@ -226,13 +327,43 @@
             🎫 View My Tickets
         </a>
 
-        <a href="/logout" class="btn btn-logout w-100 mt-2">
+        <button onclick="openLogoutModal()" class="btn btn-logout w-100 mt-2">
             Logout
-        </a>
+        </button>
 
     </div>
 
 </div>
+
+<!-- Logout Modal -->
+<div class="modal-overlay" id="logoutModal">
+    <div class="logout-modal">
+        <div class="modal-icon">👋</div>
+        <div class="modal-title">Leaving so soon?</div>
+        <div class="modal-text">Are you sure you want to log out of your account? You will need to log in again to access the portal.</div>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeLogoutModal()">Cancel</button>
+            <a href="/logout" class="btn-confirm-logout">Logout</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openLogoutModal() {
+        document.getElementById('logoutModal').classList.add('active');
+    }
+
+    function closeLogoutModal() {
+        document.getElementById('logoutModal').classList.remove('active');
+    }
+
+    // Close modal if clicked outside
+    document.getElementById('logoutModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeLogoutModal();
+        }
+    });
+</script>
 
 </body>
 
