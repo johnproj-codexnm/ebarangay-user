@@ -237,19 +237,25 @@
 
     <!-- Message Form -->
     <div class="app-card">
-        <form id="messageForm">
-            @csrf
-            <input type="hidden" id="complaint_id" value="{{ $ticket['$id'] }}">
-            <textarea 
-                id="messageInput"
-                class="chat-input mb-3" 
-                rows="2"
-                placeholder="Type your message..." 
-                required></textarea>
-            <button class="btn-send">
-                Send Message
-            </button>
-        </form>
+        @if($ticket['status'] === 'Resolved')
+            <div class="text-center text-muted" style="font-size: 0.95rem; font-weight: 500;">
+                🔒 This ticket has been resolved. Messaging is disabled.
+            </div>
+        @else
+            <form id="messageForm">
+                @csrf
+                <input type="hidden" id="complaint_id" value="{{ $ticket['$id'] }}">
+                <textarea 
+                    id="messageInput"
+                    class="chat-input mb-3" 
+                    rows="2"
+                    placeholder="Type your message..." 
+                    required></textarea>
+                <button class="btn-send">
+                    Send Message
+                </button>
+            </form>
+        @endif
     </div>
 
 </div>
@@ -313,28 +319,31 @@ function loadMessages(){
     });
 }
 
-document.getElementById("messageForm").addEventListener("submit", function(e){
-    e.preventDefault();
-    let message = document.getElementById("messageInput").value;
+let msgForm = document.getElementById("messageForm");
+if(msgForm) {
+    msgForm.addEventListener("submit", function(e){
+        e.preventDefault();
+        let message = document.getElementById("messageInput").value;
 
-    if(!message.trim()) return;
+        if(!message.trim()) return;
 
-    fetch("/send-message", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRF-TOKEN": "{{ csrf_token() }}"
-        },
-        body: JSON.stringify({
-            complaint_id: complaintId,
-            message: message
+        fetch("/send-message", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": "{{ csrf_token() }}"
+            },
+            body: JSON.stringify({
+                complaint_id: complaintId,
+                message: message
+            })
         })
-    })
-    .then(() => {
-        document.getElementById("messageInput").value = "";
-        loadMessages();
+        .then(() => {
+            document.getElementById("messageInput").value = "";
+            loadMessages();
+        });
     });
-});
+}
 
 setInterval(loadMessages, 3000);
 loadMessages();

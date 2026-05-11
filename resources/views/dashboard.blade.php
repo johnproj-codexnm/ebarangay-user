@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>eBarangay Dashboard</title>
+    <title>EBARANG-AY Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
 
     <!-- Bootstrap -->
@@ -34,7 +34,7 @@
             margin-bottom: 20px;
             box-shadow: 0 4px 16px rgba(0,0,0,0.03);
             border: 1px solid #f1f5f9;
-        }
+        }   
 
         .welcome {
             font-size: 1.25rem;
@@ -140,12 +140,51 @@
         
         .btn-logout:hover { background-color: #fecaca; }
 
+        .project-logo {
+            width: auto;
+            max-width: 200px;
+            max-height: 80px;
+            object-fit: contain;
+        }
+
+        .brgy-logo {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+        }
+
+        .brgy-name {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #475569;
+            letter-spacing: 0.5px;
+            margin: 0;
+        }
+
+        .ebarangay-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: 1px;
+            margin: 0;
+        }
+
     </style>
 </head>
 
 <body>
 
 <div class="container">
+
+    <!-- Branding -->
+    <div class="branding text-center mt-2 mb-4">
+        <img src="{{ asset('images/project-logo.png') }}" alt="Project Logo" class="project-logo mb-1">
+        <h2 class="ebarangay-title mb-2">EBARANG-AY</h2>
+        <div class="d-flex align-items-center justify-content-center gap-2">
+            <img src="{{ asset('images/umingan-logo.png') }}" alt="San Leon Logo" class="brgy-logo">
+            <h6 class="brgy-name">BARANGAY SAN LEON</h6>
+        </div>
+    </div>
 
     <!-- Header -->
     <div class="header">
@@ -167,7 +206,7 @@
             <div class="announcement-item">
                 <div class="announcement-title">{{ $ann['title'] }}</div>
                 <div class="announcement-content">{{ $ann['content'] }}</div>
-                <div class="announcement-date">{{ $ann['created_at'] }}</div>
+                <div class="announcement-date">{{ \Carbon\Carbon::parse($ann['created_at'])->format('F j, Y, g:i A') }}</div>
             </div>
         @empty
             <div class="announcement-item text-center" style="background: transparent; border: none;">

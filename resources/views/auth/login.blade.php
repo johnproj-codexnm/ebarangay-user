@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>eBarangay Login</title>
+    <title>EBARANG-AY Login</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
 
     <!-- Bootstrap -->
@@ -115,6 +115,35 @@
             margin-bottom: 24px;
         }
 
+        .project-logo {
+            width: auto;
+            max-width: 200px;
+            max-height: 80px;
+            object-fit: contain;
+        }
+
+        .brgy-logo {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+        }
+
+        .brgy-name {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #475569;
+            letter-spacing: 0.5px;
+            margin: 0;
+        }
+
+        .ebarangay-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: 1px;
+            margin: 0;
+        }
+
     </style>
 </head>
 
@@ -122,7 +151,14 @@
 
 <div class="app-card">
 
-    <div class="logo">🏛️ eBarangay</div>
+    <div class="branding text-center mb-4">
+        <img src="{{ asset('images/project-logo.png') }}" alt="Project Logo" class="project-logo mb-1">
+        <h2 class="ebarangay-title mb-2">EBARANG-AY</h2>
+        <div class="d-flex align-items-center justify-content-center gap-2">
+            <img src="{{ asset('images/umingan-logo.png') }}" alt="San Leon Logo" class="brgy-logo">
+            <h6 class="brgy-name">BARANGAY SAN LEON</h6>
+        </div>
+    </div>
     <div class="subtitle">Resident Login</div>
 
     @if(session('error'))

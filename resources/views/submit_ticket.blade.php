@@ -11,6 +11,9 @@
 
     <!-- Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Exifr for EXIF parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/exifr/dist/lite.umd.js"></script>
 
     <style>
         body {
@@ -146,10 +149,63 @@
             color: white;
         }
 
+        /* Location Selection Styles */
+        .btn-mode {
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+        .btn-mode.active {
+            background-color: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+        .btn-mode.inactive {
+            background-color: #f8fafc;
+            color: #64748b;
+            border-color: #e2e8f0;
+        }
+
+        #toast-container {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10000;
+            display: none;
+            background-color: #334155;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+
     </style>
 </head>
 
 <body>
+
+<!-- Toast Notification -->
+<div id="toast-container"></div>
+
+<!-- Submit Overlay -->
+<div id="submitOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffffff; z-index: 9999; flex-direction: column; align-items: center; justify-content: center;">
+    <img src="{{ asset('images/project-logo.png') }}" alt="Project Logo" style="width: auto; max-width: 200px; max-height: 80px; margin-bottom: 24px;">
+    
+    <div style="width: 80%; max-width: 300px;">
+        <div style="text-align: center; margin-bottom: 8px; font-weight: 600; color: #475569;">Submitting... <span id="progressText">0%</span></div>
+        <div class="progress" style="height: 12px; border-radius: 6px; background-color: #f1f5f9; overflow: hidden;">
+            <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: 0%; transition: width 0.2s ease;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+    </div>
+</div>
 
 <div class="container">
 
@@ -167,7 +223,7 @@
     <!-- Form -->
     <div class="app-card">
 
-        <form method="POST" action="/submit-complaint" enctype="multipart/form-data">
+        <form id="complaintForm" method="POST" action="/submit-complaint" enctype="multipart/form-data">
             @csrf
 
             <!-- Title -->
@@ -192,6 +248,15 @@
                         </option>
                     @endforeach
                 </select>
+            </div>
+
+            <!-- Location Source -->
+            <div class="mb-4">
+                <div class="section-label">LOCATION SOURCE</div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-mode active flex-grow-1" id="btnCurrentMode">Current</button>
+                    <button type="button" class="btn btn-mode inactive flex-grow-1" id="btnMetadataMode">Metadata</button>
+                </div>
             </div>
 
             <!-- File Upload -->
@@ -219,34 +284,133 @@
 
 <script>
 
-function getLocation(){
+let locationMode = 'current';
+let currentLocationString = '';
 
-if(navigator.geolocation){
-
-navigator.geolocation.getCurrentPosition(function(position){
-
-let lat = position.coords.latitude;
-let lng = position.coords.longitude;
-
-// Convert to Google Maps link
-let mapLink = `https://maps.google.com/?q=${lat},${lng}`;
-
-document.getElementById("locationInput").value = mapLink;
-
-}, function(error){
-
-console.log("Location error:", error);
-
+document.getElementById('btnCurrentMode').addEventListener('click', function() {
+    locationMode = 'current';
+    this.classList.replace('inactive', 'active');
+    document.getElementById('btnMetadataMode').classList.replace('active', 'inactive');
 });
 
-}else{
-console.log("Geolocation not supported");
+document.getElementById('btnMetadataMode').addEventListener('click', function() {
+    locationMode = 'metadata';
+    this.classList.replace('inactive', 'active');
+    document.getElementById('btnCurrentMode').classList.replace('active', 'inactive');
+});
+
+function showToast(message) {
+    let toast = document.getElementById('toast-container');
+    toast.innerText = message;
+    toast.style.display = 'block';
+    setTimeout(() => {
+        toast.style.display = 'none';
+    }, 4000);
 }
 
+function getLocation(){
+    if(navigator.geolocation){
+        navigator.geolocation.getCurrentPosition(function(position){
+            let lat = position.coords.latitude;
+            let lng = position.coords.longitude;
+            currentLocationString = `https://maps.google.com/?q=${lat},${lng}`;
+            document.getElementById("locationInput").value = currentLocationString;
+        }, function(error){
+            console.log("Location error:", error);
+        });
+    }else{
+        console.log("Geolocation not supported");
+    }
 }
 
 // Run automatically when page loads
 getLocation();
+
+function submitData(form, submitBtn) {
+    const formData = new FormData(form);
+    
+    // Show overlay
+    document.getElementById('submitOverlay').style.display = 'flex';
+    
+    const xhr = new XMLHttpRequest();
+    xhr.open(form.method, form.action, true);
+    
+    xhr.upload.onprogress = function(e) {
+        if (e.lengthComputable) {
+            const percentComplete = Math.round((e.loaded / e.total) * 100);
+            document.getElementById('progressBar').style.width = percentComplete + '%';
+            document.getElementById('progressText').innerText = percentComplete + '%';
+        }
+    };
+    
+    xhr.onload = function() {
+        if (xhr.status >= 200 && xhr.status < 400) {
+            document.getElementById('progressBar').style.width = '100%';
+            document.getElementById('progressText').innerText = '100%';
+            
+            setTimeout(() => {
+                if (xhr.responseURL) {
+                    window.location.href = xhr.responseURL;
+                } else {
+                    window.location.href = '/dashboard';
+                }
+            }, 500); 
+        } else {
+            alert('An error occurred while submitting.');
+            document.getElementById('submitOverlay').style.display = 'none';
+            submitBtn.disabled = false;
+        }
+    };
+    
+    xhr.onerror = function() {
+        alert('A network error occurred.');
+        document.getElementById('submitOverlay').style.display = 'none';
+        submitBtn.disabled = false;
+    };
+    
+    xhr.send(formData);
+}
+
+document.getElementById('complaintForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const form = this;
+    const submitBtn = form.querySelector('.submit-btn');
+    submitBtn.disabled = true;
+    
+    if (locationMode === 'metadata') {
+        const fileInput = document.querySelector('input[name="image"]');
+        if (fileInput && fileInput.files.length > 0) {
+            try {
+                let tags = await exifr.gps(fileInput.files[0]);
+                if (tags && tags.latitude && tags.longitude) {
+                    // Condition Alpha: Success
+                    document.getElementById("locationInput").value = `https://maps.google.com/?q=${tags.latitude},${tags.longitude}`;
+                    submitData(form, submitBtn);
+                } else {
+                    // Condition Beta: Missing coords
+                    showToast("No location data found in photo. Defaulting to your current location.");
+                    document.getElementById("locationInput").value = currentLocationString; // Fallback
+                    setTimeout(() => submitData(form, submitBtn), 2500); // Wait so user reads toast
+                }
+            } catch (err) {
+                // Condition Beta: Error parsing
+                showToast("Error parsing photo metadata. Defaulting to your current location.");
+                document.getElementById("locationInput").value = currentLocationString; // Fallback
+                setTimeout(() => submitData(form, submitBtn), 2500); 
+            }
+        } else {
+            // No photo uploaded
+            showToast("No photo uploaded. Defaulting to your current location.");
+            document.getElementById("locationInput").value = currentLocationString; // Fallback
+            setTimeout(() => submitData(form, submitBtn), 2500);
+        }
+    } else {
+        // Current Location Mode
+        document.getElementById("locationInput").value = currentLocationString;
+        submitData(form, submitBtn);
+    }
+});
 
 </script>
 
