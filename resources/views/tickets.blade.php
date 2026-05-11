@@ -145,7 +145,7 @@
         <h4 class="title">My Tickets</h4>
     </div>
 
-    @forelse($tickets as $ticket)
+    @forelse(collect($tickets)->reverse() as $ticket)
 
         <div class="app-card">
 
