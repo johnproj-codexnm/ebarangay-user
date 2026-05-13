@@ -190,8 +190,8 @@
 
             <!-- Description -->
             <div class="mb-4">
-                <div class="section-label">DESCRIPTION</div>
-                <textarea name="description" class="form-control" rows="4" placeholder="Describe the issue in detail..." required></textarea>
+                <div class="section-label">DESCRIPTION/LANDMARK</div>
+                <textarea name="description" class="form-control" rows="4" placeholder="e.g., Broken streetlight near the basketball court at Purok 1" required></textarea>
             </div>
 
             <!-- Category -->
@@ -210,7 +210,19 @@
             <div class="mb-3">
                 <div class="section-label">ATTACH PHOTO (OPTIONAL)</div>
                 <div class="file-upload">
-                    <input type="file" name="image" class="form-control">
+                    <input type="file" name="image" class="form-control" accept="image/*">
+                </div>
+            </div>
+
+            <!-- Location Selection -->
+            <div class="mb-4">
+                <div class="section-label">LOCATION</div>
+                <div class="d-flex gap-2">
+                    <input type="radio" class="btn-check" name="location_option" id="loc_current" autocomplete="off" checked>
+                    <label class="btn btn-outline-primary flex-grow-1" for="loc_current">Current</label>
+
+                    <input type="radio" class="btn-check" name="location_option" id="loc_typed" autocomplete="off">
+                    <label class="btn btn-outline-primary flex-grow-1" for="loc_typed">Typed</label>
                 </div>
             </div>
 
@@ -231,6 +243,8 @@
 
 <script>
 
+let currentMapLink = "";
+
 function getLocation(){
 
 if(navigator.geolocation){
@@ -241,9 +255,9 @@ let lat = position.coords.latitude;
 let lng = position.coords.longitude;
 
 // Convert to Google Maps link
-let mapLink = `https://maps.google.com/?q=${lat},${lng}`;
+currentMapLink = `https://maps.google.com/?q=${lat},${lng}`;
 
-document.getElementById("locationInput").value = mapLink;
+updateLocationField();
 
 }, function(error){
 
@@ -257,8 +271,23 @@ console.log("Geolocation not supported");
 
 }
 
+function updateLocationField() {
+    const isTyped = document.getElementById('loc_typed').checked;
+    const locationInput = document.getElementById('locationInput');
+    
+    if (isTyped) {
+        locationInput.value = "Location not available";
+    } else {
+        locationInput.value = currentMapLink;
+    }
+}
+
 // Run automatically when page loads
 getLocation();
+
+// Listen for radio button changes
+document.getElementById('loc_current').addEventListener('change', updateLocationField);
+document.getElementById('loc_typed').addEventListener('change', updateLocationField);
 
 document.getElementById('complaintForm').addEventListener('submit', function(e) {
     e.preventDefault();
